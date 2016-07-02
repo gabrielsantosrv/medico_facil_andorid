@@ -1,0 +1,50 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:tools="http://schemas.android.com/tools"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:padding="16dp"
+tools:context="com.medicofacil.medicofacilapp.AvaliaFragment"
+android:background="@color/background_color">
+
+<RelativeLayout
+    android:layout_width="wrap_content"
+    android:layout_height="400dp"
+    android:layout_centerVertical="true"
+    android:layout_centerHorizontal="true">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="HC Unicamp"
+        android:id="@+id/txtHospital"
+        android:textSize="45dp"
+        android:textColor="@color/text_color"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:textIsSelectable="false" />
+
+    <ImageButton
+        android:layout_width="240dp"
+        android:layout_height="130dp"
+        android:id="@+id/btnCriticar"
+        android:src="@mipmap/btn_criticar"
+        android:scaleType="fitCenter"
+        android:background="@android:color/transparent"
+        android:layout_below="@+id/txtHospital"
+        android:layout_alignLeft="@+id/btnAvaliar"
+        android:layout_alignStart="@+id/btnAvaliar"
+        android:layout_marginTop="20dp" />
+
+    <ImageButton
+        android:layout_width="240dp"
+        android:layout_height="130dp"
+        android:id="@+id/btnAvaliar"
+        android:src="@mipmap/btn_avaliar_atendimento"
+        android:scaleType="fitCenter"
+        android:background="@android:color/transparent"
+        android:layout_marginTop="10dp"
+        android:layout_below="@+id/btnCriticar"
+        android:layout_centerHorizontal="true" />
+
+</RelativeLayout>
+</RelativeLayout>

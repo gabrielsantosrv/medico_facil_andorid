@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="62dp"
+    android:orientation="vertical"
+    android:padding="10dp"
+    android:divider="#000000"
+    android:showDividers="beginning|end">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Dr. Fulano"
+        android:id="@+id/txtNome"
+        android:textSize="22dp"
+        android:textColor="@color/colorPrimaryDark"
+        android:textIsSelectable="false"
+        android:gravity="bottom" />
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="20dp"
+            android:text="Endocrinologista"
+            android:id="@+id/txtEspecialidade"
+            android:textSize="15dp"
+            android:textColor="#555555" />
+
+
+
+</LinearLayout>
