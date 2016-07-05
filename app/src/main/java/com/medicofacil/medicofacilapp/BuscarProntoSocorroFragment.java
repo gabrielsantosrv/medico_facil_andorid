@@ -1,6 +1,8 @@
 package com.medicofacil.medicofacilapp;
 
 import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -15,6 +17,7 @@ import android.widget.SearchView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.medicofacil.medicofacilapp.classesDBO.Clinica;
 import com.medicofacil.medicofacilapp.classesDBO.ProntoSocorro;
 
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -24,21 +27,20 @@ import java.util.ArrayList;
 
 
 public class BuscarProntoSocorroFragment extends Fragment {
-
     private static final String INDEX = "http://webservicepaciente.cfapps.io/";
     private static final int ORDEM_DISTANCIA = 0;
 
     private Spinner spinner;
     private SearchView pesquisa;
-    private View view;
     private ListView lstProntosSocorros;
     private ArrayList<ProntoSocorro> lista;
+    private String lat, lon;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        view  = inflater.inflate(R.layout.fragment_buscar_pronto_socorro, container, false);
+        View view  = inflater.inflate(R.layout.fragment_buscar_pronto_socorro, container, false);
 
         lstProntosSocorros = (ListView) view.findViewById(R.id.lstProntosSocorros);
         lista = new ArrayList<ProntoSocorro>();
@@ -88,6 +90,10 @@ public class BuscarProntoSocorroFragment extends Fragment {
             }
         });
 
+        SharedPreferences geo = this.getContext().getSharedPreferences("geolocalização", Context.MODE_PRIVATE);
+        lat = geo.getString("latitude", "0");
+        lon = geo.getString("longitude", "0");
+
         //quando se desejar pesquisar algo
         pesquisa.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
 
@@ -96,7 +102,7 @@ public class BuscarProntoSocorroFragment extends Fragment {
             public boolean onQueryTextSubmit(String s) {
                 //se foi digitado alguma coisa, pesquise
                 if(!pesquisa.getQuery().toString().isEmpty())
-                    new ProntoSocorrosTask().execute(pesquisa.getQuery().toString());
+                    new ProntoSocorrosTask().execute(lat, lon, pesquisa.getQuery().toString());
                 return false;
             }
 
@@ -106,7 +112,7 @@ public class BuscarProntoSocorroFragment extends Fragment {
             }
         });
 
-        new ProntoSocorrosTask().execute();
+        new ProntoSocorrosTask().execute(lat, lon);
 
         // Inflate the layout for this fragment
         return view;
@@ -171,24 +177,51 @@ public class BuscarProntoSocorroFragment extends Fragment {
         @Override
         protected ArrayList<ProntoSocorro> doInBackground(String... params) {
             try {
-                String nome = "a";
+                double lat =0, lon=0;
+                String nome = "";
 
                 if(params.length > 0)
-                    nome = params[0];
+                {
+                    lat = Double.parseDouble(params[0]);
+                    lon = Double.parseDouble(params[1]);
 
-                String url = INDEX+"getProntoSocorrosPorNome/"+nome;
+                    if(params.length == 3)
+                        nome = params[2];
+                }
+
+                String url = INDEX+"getProntoSocorros";
+
+                //foi digitado alguma coisa em pesquisa
+                //pesquise por convênio
+                if(nome == null || !nome.isEmpty())
+                    url += "PorConvenio/"+nome;
+
+                url += "/"+lat+"/"+lon;
+
 
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
 
                 //o web service retorna uma lista de prontos socorros ordenada
                 //da menor para a maior distância entre o usuário e o PS
-                ProntoSocorro vet[] = restTemplate.getForObject(url, ProntoSocorro[].class);
+                ProntoSocorro vet1[] = restTemplate.getForObject(url, ProntoSocorro[].class);
                 ArrayList<ProntoSocorro> listaPs = new ArrayList<ProntoSocorro>();
 
-                for(int i=0; i<vet.length; i++) {
-                    lista.add(vet[i]);
-                    listaPs.add(vet[i]);
+                for(int i=0; i<vet1.length; i++) {
+                    lista.add(vet1[i]);
+                    listaPs.add(vet1[i]);
+                }
+
+                //e pesquise por parte do nome
+                if(!nome.isEmpty()) {
+                    url = INDEX+"getProntoSocorrosPorNome/" + nome + "/" + lat + "/" + lon;
+
+                    ProntoSocorro vet2[] = restTemplate.getForObject(url, ProntoSocorro[].class);
+
+                    for(int i=0; i<vet2.length; i++) {
+                        lista.add(vet2[i]);
+                        listaPs.add(vet2[i]);
+                    }
                 }
 
                 return listaPs;

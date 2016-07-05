@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -24,6 +25,7 @@ import org.springframework.web.client.RestTemplate;
 
 public class LoginActivity extends Activity {
 
+    private static final String PREF_NAME = "geolocalização";
     private boolean conectado;
 
     private static final String INDEX = "http://webservicepaciente.cfapps.io/";
@@ -37,6 +39,7 @@ public class LoginActivity extends Activity {
 
 
         final TextView txtCadastrar = (TextView)this.findViewById(R.id.txtCadastrar);
+
 
         txtCadastrar.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -82,6 +85,15 @@ public class LoginActivity extends Activity {
             Log.e("MainActivity", e.getMessage(), e);
         }
 
+        //limpa os arquivos temporários
+        //de geolocalização
+        SharedPreferences.Editor editor;
+
+        SharedPreferences geo = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+        editor = geo.edit();
+
+        editor.clear();
+        editor.commit();
     }
 
     private class ConectaBdTask extends AsyncTask<Void, Void, Boolean> {

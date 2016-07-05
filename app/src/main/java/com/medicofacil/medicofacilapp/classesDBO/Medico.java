@@ -2,19 +2,23 @@ package com.medicofacil.medicofacilapp.classesDBO;
 
 import com.medicofacil.medicofacilapp.classesValidacao.Validacao;
 
+import java.io.Serializable;
+
 /**
  * Representa um determinado médico.
  * @author Equipe do projeto Médico Fácil
 */
-public class Medico implements Cloneable{
+public class Medico implements Cloneable,Serializable{
     
   private int id; // Id do médico.
-  private String especialidade;
-  private String uf; // estado em que o médico atua.
+  private String especialidade; // Id da especialidade médica.
+  private String uf; // Sigla do estado em que o médico atua.
   private String crm;  // Identificação do médico.
   private String nome; // Nome do médico.
   
   private final int MAX_NOME = 50; // Máximo de caracteres para o nome do médico.
+  private final int MAX_UF = 2;
+  private final int MAX_ESPECIALIDADE = 30;
   
   // Retorna o id do médico.
   public int getId() {
@@ -28,19 +32,27 @@ public class Medico implements Cloneable{
     this.id = id;
   }
 
+  // Retorna a especialidade médica.
   public String getEspecialidade() {
-    return especialidade;
+    return this.especialidade;
   }
 
-  public void setEspecialidade(String especialidade) {
+  // Seta a especialidade médica.
+  public void setEspecialidade(String especialidade)throws Exception{
+    if (!Validacao.isPalavraValida(especialidade,this.MAX_ESPECIALIDADE))
+      throw new Exception("Especialidade inválida.");
     this.especialidade = especialidade;
   }
 
+  // Retorna a sigla do estado.
   public String getUf() {
-    return uf;
+    return this.uf;
   }
 
-  public void setUf(String uf) {
+  // Seta a sigla do estado.
+  public void setUf(String uf)throws Exception{
+    if (!Validacao.isSiglaValida(uf,this.MAX_UF))
+      throw new Exception("Sigla do estado inválida.");
     this.uf = uf;
   }
 
@@ -68,16 +80,17 @@ public class Medico implements Cloneable{
     this.nome = nome;
   }
 
+
   
   // Construtor de cópia.
   public Medico(Medico medico)throws Exception{
     if (medico == null)
       throw new Exception("Médico não fornecido para construtor de cópia.");
-    this.id              = medico.getId();
-    this.uf              = medico.getUf();
-    this.especialidade   = medico.getEspecialidade();
-    this.crm             = medico.getCrm();
-    this.nome            = medico.getNome();
+    this.id            = medico.getId();
+    this.especialidade = medico.getEspecialidade();
+    this.uf            = medico.getUf();
+    this.crm           = medico.getCrm();
+    this.nome          = medico.getNome();
   }
   
   // Retorna uma cópia desse médico.
@@ -109,8 +122,8 @@ public class Medico implements Cloneable{
                 String crm,
                 String nome)throws Exception{
     this.setId(id);
-    this.setUf(uf);
     this.setEspecialidade(especialidade);
+    this.setUf(uf);
     this.setCrm(crm);
     this.setNome(nome);
   }

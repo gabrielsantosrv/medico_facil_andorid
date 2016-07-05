@@ -1,27 +1,34 @@
 package com.medicofacil.medicofacilapp;
 
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.location.Location;
+
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.*;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
+
 import android.app.ActionBar;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.widget.Toast;
 
 
-public class BuscarActivity extends FragmentActivity implements OnMapReadyCallback,GoogleApiClient.ConnectionCallbacks,
+public class BuscarActivity extends FragmentActivity implements OnMapReadyCallback,
+        GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
-    private GoogleApiClient mGoogleApiClient;
     private double lat, lon;
+    private GoogleApiClient mGoogleApiClient;
+    private static final String PREF_NAME = "geolocalização";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +58,7 @@ public class BuscarActivity extends FragmentActivity implements OnMapReadyCallba
         tab3.setTabListener(new NavegacaoTab(manipulaMapa));
         barra.addTab(tab3);
 
-        this.lat = 0;
-        this.lon = 0;
+        lat = lon = 0;
         callConnection();
 
         //cria um mapa asincrono
@@ -64,17 +70,7 @@ public class BuscarActivity extends FragmentActivity implements OnMapReadyCallba
             getActionBar().setSelectedNavigationItem(indiceTab);
         } else
             getActionBar().setSelectedNavigationItem(0);
-            getActionBar().setSelectedNavigationItem(0);
-    }
-
-    private synchronized void callConnection(){
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                                .addOnConnectionFailedListener(this)
-                                .addConnectionCallbacks(this)
-                                .addApi(LocationServices.API)
-                                .build();
-
-        mGoogleApiClient.connect();
+        getActionBar().setSelectedNavigationItem(0);
     }
 
     //é chamado quando após o mapa ser criado
@@ -92,9 +88,9 @@ public class BuscarActivity extends FragmentActivity implements OnMapReadyCallba
                 .position(new LatLng(lat, lon)));
 
         map.addMarker(new MarkerOptions()
-                      .icon(BitmapDescriptorFactory.fromResource(R.mipmap.marca_clinica))
-                      .anchor(0.0f, 1.0f)
-                      .position(new LatLng(41.889, -87.822)));
+                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.marca_clinica))
+                .anchor(0.0f, 1.0f)
+                .position(new LatLng(41.889, -87.822)));
 
 
         map.addMarker(new MarkerOptions()
@@ -121,23 +117,55 @@ public class BuscarActivity extends FragmentActivity implements OnMapReadyCallba
         startActivity(main);
     }
 
+    private synchronized void callConnection() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addOnConnectionFailedListener(this)
+                .addConnectionCallbacks(this)
+                .addApi(LocationServices.API)
+                .build();
 
-    //salva a última sessão antes de sair
-    @Override
-    public void onSaveInstanceState(Bundle outState){
-        super.onSaveInstanceState(outState);
-        outState.putInt("indiceTab", getActionBar().getSelectedNavigationIndex());
+        mGoogleApiClient.connect();
     }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
 
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
         Location localizacao = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 
         if(localizacao != null)
         {
             this.lat = localizacao.getLatitude();
             this.lon = localizacao.getLongitude();
+
+            //guarda a última geolocalização obtida
+            SharedPreferences.Editor editor;
+
+            SharedPreferences geo = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+            editor = geo.edit();
+            editor.putString("latitude", this.lat+"");
+            editor.putString("longitude", this.lon+"");
+
+            editor.commit();
         }
     }
 
@@ -150,6 +178,14 @@ public class BuscarActivity extends FragmentActivity implements OnMapReadyCallba
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         Toast.makeText(this, "Falha na busca de sua geolocalização", Toast.LENGTH_SHORT).show();
     }
+
+    //salva a última sessão antes de sair
+    @Override
+    public void onSaveInstanceState(Bundle outState){
+        super.onSaveInstanceState(outState);
+        outState.putInt("indiceTab", getActionBar().getSelectedNavigationIndex());
+    }
+
 
     private class NavegacaoTab implements ActionBar.TabListener{
 

@@ -1,34 +1,40 @@
 package com.medicofacil.medicofacilapp.classesDBO;
 
-
 import com.medicofacil.medicofacilapp.classesValidacao.Validacao;
+
+import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Representa um determinado pronto socorro.
  * @author Equipe do projeto Médico Fácil
 */
-public class ProntoSocorro implements Cloneable{
+public class ProntoSocorro implements Cloneable,Serializable{
   
-  private int id,idCidade;
-  private String bairro,endereco,nome,telefone;
+  private int id;
+  private String bairro,endereco,nome,telefone,cidade,uf;
+  private float latitude,longitude;
   
   // Número máximo de caracteres para alguns atributos.
   private final int MAX_BAIRRO   = 30;
   private final int MAX_ENDERECO = 100;
   private final int MAX_NOME     = 30;
-  private final int MAX_TELEFONE = 10;
+  private final int MAX_CIDADE   = 30;
+  private final int MAX_UF       = 2;
 
-  
   // Construtor de cópia.
   public ProntoSocorro(ProntoSocorro prontoSocorro)throws Exception{
     if (prontoSocorro == null)
       throw new Exception("ProntoSocorro não fornecido em construtor de cópia.");
     this.id       = prontoSocorro.getId();
-    this.idCidade = prontoSocorro.getIdCidade();
+    this.cidade   = prontoSocorro.getCidade();
+    this.uf       = prontoSocorro.getUf();
     this.bairro   = prontoSocorro.getBairro();
     this.endereco = prontoSocorro.getEndereco();
     this.nome     = prontoSocorro.getNome();
     this.telefone = prontoSocorro.getTelefone();
+    this.latitude = prontoSocorro.getLatitude();
+    this.longitude = prontoSocorro.getLongitude();
   }
   
   // Retorna uma cópia desse ProntoSocorro.
@@ -46,27 +52,36 @@ public class ProntoSocorro implements Cloneable{
   
   // Construtor polimórfico.
   public ProntoSocorro(int id,
-                       int idCidade,
+                       String cidade,
+                       String uf,
                        String bairro,
                        String endereco,
                        String nome,
-                       String telefone)throws Exception{
+                       String telefone,
+                       float latitude,
+                       float longitude)throws Exception{
     this.setId(id);
-    this.setIdCidade(idCidade);
+    this.setCidade(cidade);
+    this.setUf(uf);
     this.setBairro(bairro);
     this.setEndereco(endereco);
     this.setNome(nome);
     this.setTelefone(telefone);
+    this.setLatitude(latitude);
+    this.setLongitude(longitude);
   }
   
   // Construtor default.
   public ProntoSocorro(){
-    this.id       = 0;
-    this.idCidade = 0;
-    this.bairro   = "";
-    this.endereco = "";
-    this.nome     = "";
-    this.telefone = "";
+    this.id        = 0;
+    this.cidade    = "";
+    this.uf        = "";
+    this.bairro    = "";
+    this.endereco  = "";
+    this.nome      = "";
+    this.telefone  = "";
+    this.latitude  = 0;
+    this.longitude = 0;
   }
   
   // Seta o id do pronto socorro.
@@ -76,11 +91,18 @@ public class ProntoSocorro implements Cloneable{
     this.id = id;
   }
   
-  // Seta o id da cidade em que o pronto socorro se localiza.
-  public void setIdCidade(int idCidade)throws Exception{
-    if (idCidade < 0)
-      throw new Exception("Id da cidade inválido.");
-    this.idCidade = idCidade;
+  // Seta o nome da cidade em que o pronto socorro se localiza.
+  public void setCidade(String cidade)throws Exception{
+    if (!Validacao.isNomeLocalizacaoValido(cidade,this.MAX_CIDADE))
+      throw new Exception("Nome da cidade inválido.");
+    this.cidade = cidade;
+  }
+  
+  // Seta a sigla do estado em que a cidade se localiza.
+  public void setUf(String uf)throws Exception{
+	if (!Validacao.isSiglaValida(uf,this.MAX_UF))
+	  throw new Exception("Sigla do estado inválida.");
+	this.uf = uf;
   }
   
   // Seta o bairro em que o pronto socorro se localiza.
@@ -111,14 +133,26 @@ public class ProntoSocorro implements Cloneable{
     this.telefone = telefone;
   }
   
+  public void setLatitude(float latitude){
+	this.latitude = latitude;
+  }
+  
+  public void setLongitude(float longitude){
+	this.longitude = longitude;
+  }
+  
   // Retorna o id do pronto socorro.
   public int getId(){
     return this.id;
   }
   
   // Retorna o id da cidade em que o pronto socorro se localiza.
-  public int getIdCidade(){
-    return this.idCidade;
+  public String getCidade(){
+    return this.cidade;
+  }
+  
+  public String getUf(){
+	return this.uf;
   }
   
   // Retorna o bairro em que o pronto socorro se localiza.
@@ -139,6 +173,14 @@ public class ProntoSocorro implements Cloneable{
   // Retorna o telefone do pronto socorro.
   public String getTelefone(){
     return this.telefone;
+  }
+  
+  public float getLatitude(){
+	return this.latitude;
+  }
+  
+  public float getLongitude(){
+	return this.longitude;
   }
   
   // Retorna uma string que representa esse pronto socorro.

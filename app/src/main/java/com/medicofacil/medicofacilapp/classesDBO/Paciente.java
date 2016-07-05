@@ -4,7 +4,6 @@ import com.medicofacil.medicofacilapp.classesValidacao.Validacao;
 
 import java.io.Serializable;
 import java.sql.Date;
-import java.util.Objects;
 
 
 /**
@@ -16,9 +15,9 @@ import java.util.Objects;
 */
 public class Paciente implements Cloneable,Serializable{
 
-  private String bairro,celular,complemento,cpf,nome,senha,endereco,telefone, cidade, uf;
+  private String bairro,celular,complemento,cpf,nome,senha,endereco,telefone,cidade,uf;
   private Date dataNascimento;
-  private int id;//idCidade é o código que identifica a cidade na qual o paciente reside.
+  private int id;
   
   // Número máximo de caracteres para alguns campos.
   private final int MAX_NOME        = 50;
@@ -26,6 +25,9 @@ public class Paciente implements Cloneable,Serializable{
   private final int MAX_ENDERECO    = 100;
   private final int MAX_COMPLEMENTO = 30;
   private final int MAX_BAIRRO      = 30;
+  private final int MAX_CIDADE      = 30;
+  private final int MAX_UF          = 2;
+  
 
   // Construtor de cópia.
   public Paciente(Paciente paciente)throws Exception{
@@ -101,22 +103,6 @@ public class Paciente implements Cloneable,Serializable{
     this.dataNascimento = null;
   }
 
-  public String getCidade() {
-    return cidade;
-  }
-
-  public void setCidade(String cidade) {
-    this.cidade = cidade;
-  }
-
-  public String getUf() {
-    return uf;
-  }
-
-  public void setUf(String uf) {
-    this.uf = uf;
-  }
-
   // Seta o código que identifica o paciente no sistema.
   public void setId(int id)throws Exception{
     if (id < 0)
@@ -154,8 +140,14 @@ public class Paciente implements Cloneable,Serializable{
 
   // Seta o complemento do paciente.
   public void setComplemento(String complemento)throws Exception{
-    if (!Validacao.isComplementoEnderecoValido(complemento,this.MAX_COMPLEMENTO))
-      throw new Exception("Complemento do endereço do paciente inválido.");
+	if (complemento == null)
+	  complemento = "";
+	if (complemento.trim().equals(""))
+	  complemento = "";
+	if (!complemento.equals("")){
+      if (!Validacao.isComplementoEnderecoValido(complemento,this.MAX_COMPLEMENTO))
+        throw new Exception("Complemento do endereço do paciente inválido.");
+	}
     this.complemento = complemento;
   }
 
@@ -168,9 +160,29 @@ public class Paciente implements Cloneable,Serializable{
 
   // Seta o celular do paciente. Não deve haver pontos nem traços.
   public void setCelular(String celular)throws Exception{
-    if (!Validacao.isCelularValido(celular))
-      throw new Exception("Celular inválido.");
+    if (celular == null)
+      celular = "";
+    if (celular.trim().equals(""))
+      celular = "";
+    if (!celular.equals("")){
+	  if (!Validacao.isCelularValido(celular))
+        throw new Exception("Celular inválido.");
+    }
     this.celular = celular;
+  }
+  
+  //Seta o nome da cidade em que o pronto socorro se localiza.
+  public void setCidade(String cidade)throws Exception{
+    if (!Validacao.isNomeLocalizacaoValido(cidade,this.MAX_CIDADE))
+      throw new Exception("Nome da cidade inválido.");
+    this.cidade = cidade;
+  }
+ 
+   // Seta a sigla do estado em que a cidade se localiza.
+  public void setUf(String uf)throws Exception{
+	if (!Validacao.isSiglaValida(uf,this.MAX_UF))
+	  throw new Exception("Sigla do estado inválida.");
+	this.uf = uf;
   }
 
   // Seta a senha do paciente.
@@ -199,6 +211,15 @@ public class Paciente implements Cloneable,Serializable{
   // Retorna o nome do paciente.
   public String getNome(){
     return this.nome;
+  }
+  
+  //Retorna o id da cidade em que o pronto socorro se localiza.
+  public String getCidade(){
+    return this.cidade;
+  }
+ 
+  public String getUf(){
+	return this.uf;
   }
 
   // Retorna o cpf do paciente.

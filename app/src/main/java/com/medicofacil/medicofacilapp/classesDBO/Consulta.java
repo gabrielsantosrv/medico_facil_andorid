@@ -6,6 +6,7 @@ import java.sql.Timestamp;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
 import com.medicofacil.medicofacilapp.classesValidacao.Validacao;
 
 
@@ -16,19 +17,21 @@ import com.medicofacil.medicofacilapp.classesValidacao.Validacao;
 public class Consulta implements Cloneable,Serializable{
   
   private int id; // Id dessa consulta.
-  private int idMedicoClinica; // Id da relação entre um médico e uma clínica.
-  private int idPaciente; // Id do paciente a ser consultado.
+  private Paciente paciente;
+  private Medico medico;
+  private Clinica clinica;
   @JsonFormat(shape=JsonFormat.Shape.STRING,pattern="yyyy-MM-dd HH:mm")
   private Timestamp dataHora; // Data e hora da consulta.
-  
+
   // Construtor de cópia.
   public Consulta(Consulta consulta)throws Exception{
     if (consulta == null)
       throw new Exception("Consulta não fornecida em construtor de cópia.");
-    this.id              = consulta.getId();
-    this.idMedicoClinica = consulta.getIdMedicoClinica();
-    this.idPaciente      = consulta.getIdPaciente();
-    this.dataHora        = consulta.getDataHora();
+    this.id       = consulta.getId();
+    this.paciente = consulta.getPaciente();
+    this.medico   = consulta.getMedico();
+    this.clinica  = consulta.getClinica();
+    this.dataHora = consulta.getDataHora();
   }
   
   // Retorna uma cópia dessa consulta.
@@ -46,21 +49,24 @@ public class Consulta implements Cloneable,Serializable{
   
   // Constutor polimórfico.
   public Consulta(int id,
-                  int idMedicoClinica,
-                  int idPaciente,
+                  Paciente paciente,
+                  Medico medico,
+                  Clinica clinica,
                   Timestamp dataHora)throws Exception{
     this.setId(id);
-    this.setIdMedicoClinica(idMedicoClinica);
-    this.setIdPaciente(idPaciente);
+    this.setPaciente(paciente);
+    this.setMedico(medico);
+    this.setClinica(clinica);
     this.setDataHora(dataHora);
   }
   
   // Construtor default.
   public Consulta(){
-    this.id              = 0;
-    this.idMedicoClinica = 0;
-    this.idPaciente      = 0;
-    this.dataHora        = null;
+    this.id       = 0;
+    this.medico   = null;
+    this.clinica  = null;
+    this.paciente = null;
+    this.dataHora = null;
   }
   
   // Retorna o id dessa consulta.
@@ -75,28 +81,35 @@ public class Consulta implements Cloneable,Serializable{
     this.id = id;
   }
 
-  // Retorna o id da relação entre médico e clínica.
-  public int getIdMedicoClinica() {
-    return idMedicoClinica;
+  public Paciente getPaciente(){
+	return this.paciente;
   }
-
-  // Seta o id da relação entre médico e clínica.
-  public void setIdMedicoClinica(int idMedicoClinica)throws Exception{
-    if (idMedicoClinica < 0)
-      throw new Exception("Id da relação entre médico e clínica inválido.");
-    this.idMedicoClinica = idMedicoClinica;
+  
+  // O paciente pode ser nulo, pois não precisaremos dele, por exemplo,
+  // para cadastrar uma consulta. Nesse processo, o paciente será preenchido
+  // automaticamente com base nos dados do paciente logado no momento.
+  public void setPaciente(Paciente paciente)throws Exception{
+	this.paciente = paciente;
   }
-
-  // Retorna o id do paciente.
-  public int getIdPaciente(){
-    return idPaciente;
+  
+  public Medico getMedico(){
+	return this.medico;
   }
-
-  // Seta o id do paciente.
-  public void setIdPaciente(int idPaciente)throws Exception{
-    if (idPaciente < 0)
-      throw new Exception("Id do paciente inválido.");
-    this.idPaciente = idPaciente;
+  
+  public void setMedico(Medico medico)throws Exception{
+	if (medico == null)
+	  throw new Exception("Médico não fornecido.");
+	this.medico = medico;
+  }
+  
+  public Clinica getClinica(){
+	return this.clinica;
+  }
+  
+  public void setClinica(Clinica clinica)throws Exception{
+	if (clinica == null)
+	  throw new Exception("Clínica não fornecida.");
+	this.clinica = clinica;
   }
 
   // Retorna o período da consulta do paciente.

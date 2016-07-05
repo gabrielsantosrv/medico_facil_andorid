@@ -26,46 +26,6 @@
         android:id="@+id/lstProntosSocorros"
         android:layout_gravity="center_horizontal"
         android:layout_below="@+id/spnOrdem"
-        android:background="@color/background_color"
-        android:layout_above="@+id/linearLayout" />
+        android:background="@color/background_color" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:orientation="horizontal"
-        android:layout_alignRight="@+id/srcPesquisa"
-        android:layout_alignEnd="@+id/srcPesquisa"
-        android:id="@+id/linearLayout"
-        android:layout_alignParentBottom="true">
-          <LinearLayout
-              android:layout_width="40dp"
-              android:layout_height="40dp"
-              android:background="#c7ebe8"
-              android:layout_marginLeft="20dp"
-              android:layout_gravity="center_vertical"></LinearLayout>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Privado"
-            android:id="@+id/textView2"
-            android:layout_marginLeft="15dp"
-            android:layout_gravity="center_vertical" />
-
-        <LinearLayout
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="#c7d6ec"
-            android:layout_marginLeft="20dp"
-            android:layout_gravity="center_vertical"></LinearLayout>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Público"
-            android:id="@+id/textView3"
-            android:layout_gravity="center_vertical"
-            android:layout_marginLeft="15dp" />
-
-    </LinearLayout>
 </RelativeLayout>

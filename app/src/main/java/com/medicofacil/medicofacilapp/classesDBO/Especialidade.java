@@ -16,7 +16,7 @@ public class Especialidade implements Cloneable{
   // Número máximo de caracteres para o nome da especialidade médica.
   private final int MAX_NOME = 20; 
 
-  
+
   // Construtor de cópia.
   public Especialidade(Especialidade especialidade)throws Exception{
     if (especialidade == null)
