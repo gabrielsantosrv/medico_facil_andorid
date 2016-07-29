@@ -20,12 +20,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.gson.Gson;
 
-public class MainActivity extends Activity implements  GoogleApiClient.ConnectionCallbacks,
-                                                       GoogleApiClient.OnConnectionFailedListener{
-
-    private static final String PREF_NAME = "geolocalização";
-
-    private GoogleApiClient mGoogleApiClient;
+public class MainActivity extends Activity{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,8 +30,6 @@ public class MainActivity extends Activity implements  GoogleApiClient.Connectio
         ImageButton btnConsultar = (ImageButton) this.findViewById(R.id.btnConsultar);
         ImageButton btnBuscar = (ImageButton) this.findViewById(R.id.btnBuscar);
         ImageButton btnAvaliar = (ImageButton) this.findViewById(R.id.btnAvaliar);
-
-        callConnection();
 
         btnConsultar.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -68,67 +61,6 @@ public class MainActivity extends Activity implements  GoogleApiClient.Connectio
             }
         });
 
-    }
-
-
-
-    private synchronized void callConnection() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addOnConnectionFailedListener(this)
-                .addConnectionCallbacks(this)
-                .addApi(LocationServices.API)
-                .build();
-
-        mGoogleApiClient.connect();
-    }
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        Location localizacao = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-
-        if(localizacao != null)
-        {
-            //guarda a última geolocalização obtida
-            SharedPreferences.Editor editor;
-
-            SharedPreferences geo = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
-            editor = geo.edit();
-            editor.putString("latitude", localizacao.getLatitude()+"");
-            editor.putString("longitude", localizacao.getLongitude()+"");
-
-            editor.commit();
-        }
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Toast.makeText(this, "Falha na busca de sua geolocalização", Toast.LENGTH_SHORT).show();
     }
 }
 

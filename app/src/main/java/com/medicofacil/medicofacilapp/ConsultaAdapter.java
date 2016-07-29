@@ -8,19 +8,18 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.medicofacil.medicofacilapp.classesDBO.Consulta;
-import com.medicofacil.medicofacilapp.classesDBO.ProntoSocorro;
 
 import java.util.ArrayList;
 
 /**
  * Created by Gabriel Oliveira on 28/05/2016.
  */
-public class MarcarConsultaAdapter extends BaseAdapter {
+public class ConsultaAdapter extends BaseAdapter {
 
     private Context contexto;
     private ArrayList<Consulta> consultas;
 
-    public MarcarConsultaAdapter(Context contexto, ArrayList<Consulta> consultas)
+    public ConsultaAdapter(Context contexto, ArrayList<Consulta> consultas)
     {
         this.contexto = contexto;
         this.consultas = (ArrayList<Consulta>) consultas.clone();
@@ -57,17 +56,27 @@ public class MarcarConsultaAdapter extends BaseAdapter {
         //(layout, parent)
         View layout = inflater.inflate(R.layout.item_consulta, null);
 
-        TextView txtNome = (TextView)layout.findViewById(R.id.txtNome);
+        TextView txtNome = (TextView)layout.findViewById(R.id.txtNomeMedico);
         TextView txtDataHora = (TextView)layout.findViewById(R.id.txtDataHora);
         TextView txtEspecialidade = (TextView)layout.findViewById(R.id.txtEspecialidade);
-        TextView txtNomeClinica = (TextView)layout.findViewById(R.id.txtNomeClinica);
+        TextView txtNomeClinica = (TextView)layout.findViewById(R.id.txtNome);
 
-        txtNome.setText(consulta.getMedico().getNome());
-        txtEspecialidade.setText(consulta.getMedico().getEspecialidade());
-        txtDataHora.setText(
-            consulta.getDataHora().getDay()+"/"+consulta.getDataHora().getMonth()+"/"+consulta.getDataHora().getYear()+" - "+
-            consulta.getDataHora().getHours()+":"+consulta.getDataHora().getMinutes());
-        txtNomeClinica.setText(consulta.getClinica().getNome());
+        txtNome.setText(consulta.getHorario().getMedico().getNome());
+        //txtEspecialidade.setText(consulta.getHorario().getMedico().getEspecialidade());
+
+        //formato da data do getDate().toString(): yyyy-mm-dd
+        String data = consulta.getHorario().getData().toString();
+        String dia, mes, ano;
+
+        dia = data.substring(8);
+        mes = data.substring(5,7);
+        ano = data.substring(0,4);
+
+        txtDataHora.setText(dia+"/"+mes+"/"+ano+"     "+
+                            consulta.getHorario().getHoraInicio().toString().substring(0,5)+" - "+
+                            consulta.getHorario().getHoraFim().toString().substring(0,5));
+
+        txtNomeClinica.setText(consulta.getHorario().getClinica().getNome());
 
 
         return layout;

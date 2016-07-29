@@ -5,27 +5,18 @@
     tools:context="com.medicofacil.medicofacilapp.MarcarMedicoFragment">
 
     <!-- TODO: Update blank fragment layout -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="HC Unicamp"
-        android:textSize="25dp"
-        android:id="@+id/txtNomeMedico"
-        android:textAlignment="center"
-        android:textColor="@color/text_color" />
 
     <SearchView android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/srcPesquisa"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:layout_below="@+id/txtNomeMedico"
         android:layout_marginTop="5dp" />
 
     <ListView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/lstMedicos"
+        android:id="@+id/lstConvenios"
         android:layout_gravity="center_horizontal"
         android:background="@color/background_color"
         android:layout_below="@+id/srcPesquisa"

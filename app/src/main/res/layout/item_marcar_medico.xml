@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Dr. Fulano"
-        android:id="@+id/txtNome"
+        android:id="@+id/txtNomeMedico"
         android:textSize="22dp"
         android:textColor="@color/colorPrimaryDark"
         android:textIsSelectable="false"

@@ -2,26 +2,22 @@ package com.medicofacil.medicofacilapp.classesDBO;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
-import com.medicofacil.medicofacilapp.classesValidacao.Validacao;
-
 
 /**
-  * Representa uma determinada consulta na clínica.
-  * @author Equipe do projeto Médico Fácil
-*/
+ * Representa uma determinada consulta na clínica.
+ * @author Equipe do projeto Médico Fácil
+ */
 public class Consulta implements Cloneable,Serializable{
-  
+
   private int id; // Id dessa consulta.
   private Paciente paciente;
-  private Medico medico;
-  private Clinica clinica;
-  @JsonFormat(shape=JsonFormat.Shape.STRING,pattern="yyyy-MM-dd HH:mm")
-  private Timestamp dataHora; // Data e hora da consulta.
+  private Horario horario;
 
   // Construtor de cópia.
   public Consulta(Consulta consulta)throws Exception{
@@ -29,11 +25,9 @@ public class Consulta implements Cloneable,Serializable{
       throw new Exception("Consulta não fornecida em construtor de cópia.");
     this.id       = consulta.getId();
     this.paciente = consulta.getPaciente();
-    this.medico   = consulta.getMedico();
-    this.clinica  = consulta.getClinica();
-    this.dataHora = consulta.getDataHora();
+    this.horario  = consulta.getHorario();
   }
-  
+
   // Retorna uma cópia dessa consulta.
   @Override
   public Consulta clone(){
@@ -46,29 +40,23 @@ public class Consulta implements Cloneable,Serializable{
     }
     return consulta;
   }
-  
+
   // Constutor polimórfico.
   public Consulta(int id,
-                  Paciente paciente,
-                  Medico medico,
-                  Clinica clinica,
-                  Timestamp dataHora)throws Exception{
+                  Horario horario,
+                  Paciente paciente)throws Exception{
     this.setId(id);
     this.setPaciente(paciente);
-    this.setMedico(medico);
-    this.setClinica(clinica);
-    this.setDataHora(dataHora);
+    this.setHorario(horario);
   }
-  
+
   // Construtor default.
   public Consulta(){
     this.id       = 0;
-    this.medico   = null;
-    this.clinica  = null;
+    this.horario  = null;
     this.paciente = null;
-    this.dataHora = null;
   }
-  
+
   // Retorna o id dessa consulta.
   public int getId(){
     return id;
@@ -82,47 +70,24 @@ public class Consulta implements Cloneable,Serializable{
   }
 
   public Paciente getPaciente(){
-	return this.paciente;
+    return this.paciente;
   }
-  
+
   // O paciente pode ser nulo, pois não precisaremos dele, por exemplo,
   // para cadastrar uma consulta. Nesse processo, o paciente será preenchido
   // automaticamente com base nos dados do paciente logado no momento.
   public void setPaciente(Paciente paciente)throws Exception{
-	this.paciente = paciente;
-  }
-  
-  public Medico getMedico(){
-	return this.medico;
-  }
-  
-  public void setMedico(Medico medico)throws Exception{
-	if (medico == null)
-	  throw new Exception("Médico não fornecido.");
-	this.medico = medico;
-  }
-  
-  public Clinica getClinica(){
-	return this.clinica;
-  }
-  
-  public void setClinica(Clinica clinica)throws Exception{
-	if (clinica == null)
-	  throw new Exception("Clínica não fornecida.");
-	this.clinica = clinica;
+    if(paciente != null)
+      this.paciente = paciente.clone();
   }
 
-  // Retorna o período da consulta do paciente.
-  @JsonSerialize(using=CustomTimestampSerializer.class)
-  public Timestamp getDataHora(){
-    return dataHora;
+  public void setHorario(Horario horario)throws Exception{
+    if (horario == null)
+      throw new Exception("Horário não fornecido.");
+    this.horario = horario.clone();
   }
 
-  // Seta o período da consulta do paciente.
-  @JsonDeserialize(using=CustomTimestampDeserializer.class)
-  public void setDataHora(Timestamp dataHora)throws Exception{
-    if (!Validacao.isDataPosteriorValida(dataHora))
-      throw new Exception("Período da consulta inválido.");
-    this.dataHora = dataHora;
+  public Horario getHorario(){
+    return this.horario;
   }
 }

@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MarcarHorarioFragment">
+    tools:context=".MarcarDataHorarioFragment">
 
     <!-- TODO: Update blank fragment layout -->
     <TextView
@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:text="Dr. Fulano"
         android:textSize="30dp"
-        android:id="@+id/txtNomeMedico"
+        android:id="@+id/txtNome"
         android:textAlignment="center"
         android:textColor="@color/text_color" />
 
@@ -21,7 +21,7 @@
         android:layout_height="80dp"
         android:layout_gravity="center_horizontal"
         android:orientation="horizontal"
-        android:layout_below="@+id/txtNomeMedico"
+        android:layout_below="@+id/txtNome"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_marginTop="80dp"
@@ -34,7 +34,7 @@
             android:src="@mipmap/calendario"
             android:scaleType="fitCenter"
             android:background="@android:color/transparent"
-            android:layout_below="@+id/txtNomeMedico"
+            android:layout_below="@+id/txtNome"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             android:layout_marginLeft="50dp" />
@@ -71,7 +71,7 @@
             android:src="@mipmap/relogio"
             android:scaleType="fitCenter"
             android:background="@android:color/transparent"
-            android:layout_below="@+id/txtNomeMedico"
+            android:layout_below="@+id/txtNome"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             android:layout_marginLeft="50dp" />
@@ -81,7 +81,7 @@
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Horário"
-            android:id="@+id/txtHorario"
+            android:id="@+id/txtDataHora"
             android:layout_alignBottom="@+id/imageButton"
             android:layout_centerHorizontal="true"
             android:textSize="25dp"
@@ -92,8 +92,8 @@
     <Button
         android:layout_width="250dp"
         android:layout_height="wrap_content"
-        android:text="Entrar"
-        android:id="@+id/button"
+        android:text="Marcar"
+        android:id="@+id/btnMarcar"
         android:background="#FF42A4DA"
         android:textColor="#ffffffff"
         android:textSize="18dp"

@@ -15,8 +15,8 @@ import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.medicofacil.medicofacilapp.classesDBO.Clinica;
 import com.medicofacil.medicofacilapp.classesDBO.Medico;
+import com.medicofacil.medicofacilapp.classesDBO.ProntoSocorro;
 
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
@@ -24,13 +24,13 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 
 
-public class MarcarMedicoFragment extends Fragment {
+public class BuscarMedicoPlantaoFragment extends Fragment {
 
     private static final String INDEX = "http://webservicepaciente.cfapps.io/";
     private ArrayList<Medico> lista;
     private ListView lstMedicos;
     private SearchView pesquisa;
-    private Clinica clinica;
+    private ProntoSocorro ps;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -39,13 +39,10 @@ public class MarcarMedicoFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_medico, container, false);
 
-        //recupera a clínica guardada no momento em que se selecionou uma clínica no fragment MarcarClinica
-        clinica = ((ConsultarActivity)getActivity()).getClinica();
-
         lista = new ArrayList<Medico>();
-
-        TextView txtNomeClinica = (TextView)view.findViewById(R.id.txtNome);
-        txtNomeClinica.setText(clinica.getNome());
+        ps = ((BuscarActivity)getActivity()).getProntoSocorro();
+        TextView txtNomePs = (TextView)view.findViewById(R.id.txtNome);
+        txtNomePs.setText(ps.getNome());
 
         pesquisa = (SearchView)view.findViewById(R.id.srcPesquisa);
 
@@ -71,16 +68,8 @@ public class MarcarMedicoFragment extends Fragment {
 
         lstMedicos.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                //muda o fragment da Tab selecionada(marcação de médico) para marcação de horário
-                FragmentTransaction gerente = getActivity().getSupportFragmentManager().beginTransaction();
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 
-                ConsultarActivity activity = (ConsultarActivity) getActivity();
-                //guarda o médico clicada
-                activity.setMedico(lista.get(position));
-
-                gerente.replace(R.id.fragmentConteiner, new MarcarDataHorarioFragment());
-                gerente.commit();
             }
         });
 
@@ -97,7 +86,7 @@ public class MarcarMedicoFragment extends Fragment {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            dialog = ProgressDialog.show(MarcarMedicoFragment.this.getContext(), "Aguarde",
+            dialog = ProgressDialog.show(BuscarMedicoPlantaoFragment.this.getContext(), "Aguarde",
                     "Aguarde um momento, estamos buscando os médicos desta clínica no nosso sistema");
 
             int tamanho = lista.size();
@@ -112,15 +101,7 @@ public class MarcarMedicoFragment extends Fragment {
         protected ArrayList<Medico> doInBackground(String... params) {
             try {
 
-                String url = INDEX;
-
-                //se foi passado parte do nome do médico por parâmetro
-                if(params.length > 0)
-                  url += "getMedicosPorNomeIdClinica/"+params[0];
-                else
-                    url += "getMedicosPorClinica";
-
-                url += "/"+clinica.getId();
+                String url = INDEX+"/getMedicosPlantao/"+ps.getId();
 
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
@@ -145,16 +126,21 @@ public class MarcarMedicoFragment extends Fragment {
 
             if(medicos.size() == 0)
             {
-                Toast.makeText(getContext(), "Infelizmente a clínica "+clinica.getNome()+" não tem médicos disponíveis.", Toast.LENGTH_LONG);
-                getActivity().getActionBar().setSelectedNavigationItem(0);
+                Toast.makeText(getContext(), "Infelizmente o pronto socorro "+ps.getNome()+" não tem médicos disponíveis.",
+                               Toast.LENGTH_LONG).show();
+
+                FragmentTransaction gerente = getActivity().getSupportFragmentManager().beginTransaction();
+                gerente.replace(R.id.fragmentConteiner, new BuscarProntoSocorroFragment());
+                gerente.commit();
             }
             else
             {
                 MedicoAdapter adaptador;
-                adaptador = new MedicoAdapter(MarcarMedicoFragment.this.getActivity(), medicos);
+                adaptador = new MedicoAdapter(BuscarMedicoPlantaoFragment.this.getActivity(), medicos);
 
                 lstMedicos.setAdapter(adaptador);
             }
+
         }
 
     }

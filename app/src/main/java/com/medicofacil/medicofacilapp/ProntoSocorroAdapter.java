@@ -1,11 +1,16 @@
 package com.medicofacil.medicofacilapp;
 
 import android.content.Context;
+import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
+
+import com.google.android.gms.maps.SupportMapFragment;
 import com.medicofacil.medicofacilapp.classesDBO.ProntoSocorro;
 import java.util.ArrayList;
 
@@ -54,11 +59,12 @@ public class ProntoSocorroAdapter extends BaseAdapter {
         //(layout, parent)
         View layout = inflater.inflate(R.layout.item_buscar_ps_clinica, null);
 
-        TextView txtNome = (TextView)layout.findViewById(R.id.txtNome);
+        TextView txtNome = (TextView)layout.findViewById(R.id.txtNomeMedico);
         TextView txtEndereco = (TextView)layout.findViewById(R.id.txtEndereco);
 
         txtNome.setText(prontoSocorro.getNome());
-        txtEndereco.setText(prontoSocorro.getEndereco()+"\n"+prontoSocorro.getBairro()+"\n"+
+        txtEndereco.setText("Endereço: "+prontoSocorro.getEndereco()+"\n"+
+                            "Bairro: "+prontoSocorro.getBairro()+"\n"+
                             prontoSocorro.getCidade()+" - "+prontoSocorro.getUf()+"\n"+
                             "Tel: "+prontoSocorro.getTelefone());
 

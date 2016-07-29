@@ -2,8 +2,11 @@ package com.medicofacil.medicofacilapp;
 
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -19,7 +22,11 @@ import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.Spinner;
 
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
 import com.medicofacil.medicofacilapp.classesDBO.Clinica;
+import com.medicofacil.medicofacilapp.classesDBO.Consulta;
+import com.medicofacil.medicofacilapp.classesDBO.Convenio;
 
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
@@ -36,13 +43,22 @@ public class MarcarClinicaFragment extends Fragment {
     private ListView lstClinicas;
     private ArrayList<Clinica> lista;
     private String lat, lon;
+    private AlertDialog msg;
+    private int posicaoItem;
+    private Convenio convenio;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
         View view  = inflater.inflate(R.layout.fragment_marcar_clinica, container, false);
+        ConsultarActivity activity = (ConsultarActivity)getActivity();
+        activity.setAlterando(false);
+      //  convenio = activity.getConvenio();
 
+        Localizacao localizacao = activity.getLocalizacao();
+        lat = localizacao.getLatitude()+"";
+        lon = localizacao.getLongitude()+"";
 
         lstClinicas = (ListView) view.findViewById(R.id.lstClinicas);
         lista = new ArrayList<Clinica>();
@@ -58,12 +74,12 @@ public class MarcarClinicaFragment extends Fragment {
 
                 if(lista.size() > 0)
                 {
-                    BuscarClinicaAdapter adaptador;
+                    ClinicaAdapter adaptador;
 
                     if (position == ORDEM_DISTANCIA)
-                        adaptador = new BuscarClinicaAdapter(MarcarClinicaFragment.this.getActivity(), lista);
+                        adaptador = new ClinicaAdapter(MarcarClinicaFragment.this.getActivity(), lista);
                     else
-                        adaptador = new BuscarClinicaAdapter(MarcarClinicaFragment.this.getActivity(), ordenaAlfabetica());
+                        adaptador = new ClinicaAdapter(MarcarClinicaFragment.this.getActivity(), ordenaAlfabetica());
 
                     lstClinicas.setAdapter(adaptador);
                 }
@@ -92,12 +108,6 @@ public class MarcarClinicaFragment extends Fragment {
             }
         });
 
-
-        SharedPreferences geo = this.getContext().getSharedPreferences("geolocalização", Context.MODE_PRIVATE);
-        lat = geo.getString("latitude", "0");
-        lon = geo.getString("longitude", "0");
-
-
         //quando se desejar pesquisar algo
         pesquisa.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
 
@@ -113,6 +123,59 @@ public class MarcarClinicaFragment extends Fragment {
             @Override
             public boolean onQueryTextChange(String s) {
                 return false;
+            }
+        });
+
+        lstClinicas.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int posicaoItem, long l) {
+
+                MarcarClinicaFragment.this.posicaoItem = posicaoItem;
+
+                ArrayList<String> itens = new ArrayList<String>();
+                itens.add("Visualizar no mapa");
+                itens.add("Pesquisar médicos");
+
+                //adapter utilizando um layout customizado (TextView)
+                ArrayAdapter adapter = new ArrayAdapter(MarcarClinicaFragment.this.getActivity(),
+                        R.layout.item_dialog, itens);
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(MarcarClinicaFragment.this.getActivity());
+                builder.setTitle("O que deseja?");
+
+                //define o diálogo como uma lista, passa o adapter.
+                builder.setSingleChoiceItems(adapter, 0, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog , int posicao) {
+
+                        Clinica clinica  = lista.get(MarcarClinicaFragment.this.posicaoItem);
+
+                        if(posicao == 0)//se quer visualizar a clínica no mapa
+                        {
+                            Intent intent = new Intent(getActivity(), MapaActivity.class);
+
+                            //passa a geolocalização para o mapa
+                            Bundle bundle = new Bundle();
+                            bundle.putString("clinica", clinica.getLatitude()+"/"+clinica.getLongitude());
+                            intent.putExtras(bundle);
+
+                            getActivity().startActivity(intent);
+                        }
+                        else
+                        {
+                            FragmentTransaction gerente = getActivity().getSupportFragmentManager().beginTransaction();
+                            ConsultarActivity activity = (ConsultarActivity) getActivity();
+                            //guarda a clínica clicada
+                            activity.setClinica(clinica);
+                            gerente.replace(R.id.fragmentConteiner, new MarcarMedicoFragment());
+                            gerente.commit();
+                        }
+
+                        msg.dismiss();
+                    }
+                });
+
+                msg = builder.create();
+                msg.show();
             }
         });
 
@@ -169,67 +232,49 @@ public class MarcarClinicaFragment extends Fragment {
         protected void onPreExecute() {
             super.onPreExecute();
             dialog = ProgressDialog.show(MarcarClinicaFragment.this.getContext(), "Aguarde",
-                    "Aguarde um momento, estamos buscando as clínicas no nosso sistema");
-
-            int tamanho = lista.size();
+                    "Aguarde um momento, estamos buscando as clínicas deste convênio no nosso sistema");
 
             //limpa a lista
-            for(int i=0; i<tamanho; i++)
-                lista.remove(0);
+            lista.clear();
         }
 
         //quando doInBackground termina, é chamado o onPostExecute com o retorno do doInBackground
         @Override
         protected ArrayList<Clinica> doInBackground(String... params) {
             try {
-                double lat =0, lon=0;
+                float lat =0, lon=0;
                 String nome = "";
 
                 if(params.length > 0)
                 {
-                    lat = Double.parseDouble(params[0]);
-                    lon = Double.parseDouble(params[1]);
+                    lat = Float.parseFloat(params[0]);
+                    lon = Float.parseFloat(params[1]);
 
                     if(params.length == 3)
                         nome = params[2];
                 }
 
-                String url = INDEX+"getClinicas";
+                String url = INDEX;
 
                 //foi digitado alguma coisa em pesquisa
-                //pesquise por convênio
-                if(nome == null || !nome.isEmpty())
-                    url += "PorConvenio/"+nome;
-
-                url += "/"+lat+"/"+lon;
+                //pesquise por nome todas as clínicas daquele convênio
+                if(!nome.isEmpty())
+                    url += "getClinicasPorNome/" + nome + "/" + lat + "/" + lon; //"getClinicasPorNomeConvenio/"+convenio.getId()+"/"+lat+"/"+lon;
+                else
+                  url += "getClinicas/"+lat+"/"+lon; //"getClinicasPorConvenio/"+convenio.getId()+"/"+lat+"/"+lon;
 
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
 
                 //o web service retorna uma lista de prontos socorros ordenada
                 //da menor para a maior distância entre o usuário e o PS
-                Clinica vet1[] = restTemplate.getForObject(url, Clinica[].class);
+                Clinica vet[] = restTemplate.getForObject(url, Clinica[].class);
 
-                ArrayList<Clinica> listaClinica = new ArrayList<Clinica>();
-
-                for(int i=0; i<vet1.length; i++) {
-                    lista.add(vet1[i]);
-                    listaClinica.add(vet1[i]);
+                for(int i=0; i<vet.length; i++) {
+                    lista.add(vet[i]);
                 }
 
-                //e pesquise por parte do nome
-                if(!nome.isEmpty()) {
-                    url = INDEX+"getClinicasPorNome/" + nome + "/" + lat + "/" + lon;
-
-                    Clinica vet2[] = restTemplate.getForObject(url, Clinica[].class);
-
-                    for(int i=0; i<vet2.length; i++) {
-                        lista.add(vet2[i]);
-                        listaClinica.add(vet2[i]);
-                    }
-                }
-
-                return listaClinica;
+                return lista;
 
             } catch (Exception e) {
                 Log.e("BuscarClinica", e.getMessage(), e);
@@ -238,31 +283,20 @@ public class MarcarClinicaFragment extends Fragment {
             return null;
         }
 
-
         protected void onPostExecute(ArrayList<Clinica> clinicas) {
             dialog.dismiss();
 
             if(clinicas != null)
             {
-                BuscarClinicaAdapter adaptador;
+                ClinicaAdapter adaptador;
 
                 if(spinner.getSelectedItemPosition() == ORDEM_DISTANCIA)
-                    adaptador = new BuscarClinicaAdapter(MarcarClinicaFragment.this.getActivity(), clinicas);
+                    adaptador = new ClinicaAdapter(MarcarClinicaFragment.this.getActivity(), clinicas);
                 else
-                    adaptador = new BuscarClinicaAdapter(MarcarClinicaFragment.this.getActivity(), ordenaAlfabetica());
+                    adaptador = new ClinicaAdapter(MarcarClinicaFragment.this.getActivity(), ordenaAlfabetica());
 
                 lstClinicas.setAdapter(adaptador);
             }
-
-         /*   lstClinicas.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-               @Override
-                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                    //muda o fragment da Tab selecionada(marcação de médico) para marcação de horário
-                    FragmentTransaction gerente = getActivity().getSupportFragmentManager().beginTransaction();
-                    gerente.replace(R.id.fragmentConteiner, new MarcarHorarioFragment());
-                    gerente.commit();
-                }
-            });*/
         }
 
     }

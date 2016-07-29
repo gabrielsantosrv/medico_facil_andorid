@@ -1,5 +1,9 @@
 package com.medicofacil.medicofacilapp;
 
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -9,105 +13,102 @@ import com.google.android.gms.maps.model.*;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.zza;
+import com.medicofacil.medicofacilapp.classesDBO.Clinica;
+import com.medicofacil.medicofacilapp.classesDBO.ProntoSocorro;
 
 import android.app.ActionBar;
 import android.content.Intent;
+import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.widget.Toast;
 
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.client.RestTemplate;
 
-public class BuscarActivity extends FragmentActivity implements OnMapReadyCallback,
-        GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener {
+import java.util.ArrayList;
 
-    private double lat, lon;
+
+public class BuscarActivity extends FragmentActivity implements  GoogleApiClient.ConnectionCallbacks,
+                                                                 GoogleApiClient.OnConnectionFailedListener{
+
     private GoogleApiClient mGoogleApiClient;
-    private static final String PREF_NAME = "geolocalização";
+    private double lat, lon;//geolocalização do paciente
+    private ProntoSocorro prontoSocorro;
+
+    public ProntoSocorro getProntoSocorro() {
+        return prontoSocorro;
+    }
+
+    public void setProntoSocorro(ProntoSocorro prontoSocorro) {
+        this.prontoSocorro = prontoSocorro;
+    }
+
+    public Localizacao getLocalizacao() {
+        //altera o lat e o lon (latitude e longitude)
+        callConnection();
+
+        //retorna essa geolocalização
+        return new Localizacao(lat, lon);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_buscar);
 
-
-        ActionBar barra = this.getActionBar();
-        barra.setTitle("Buscar");
-
-        barra.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-
-        ActionBar.Tab tab1 = barra.newTab();
-        tab1.setText("Hospitais");
-        tab1.setTabListener(new NavegacaoTab(new BuscarProntoSocorroFragment()));
-        barra.addTab(tab1);
-
-        ActionBar.Tab tab2 = barra.newTab();
-        tab2.setText("Clínicas");
-        tab2.setTabListener(new NavegacaoTab(new BuscarClinicaFragment()));
-        barra.addTab(tab2);
-
-        SupportMapFragment manipulaMapa = SupportMapFragment.newInstance();
-
-        ActionBar.Tab tab3 = barra.newTab();
-        tab3.setText("Mapa");
-        tab3.setTabListener(new NavegacaoTab(manipulaMapa));
-        barra.addTab(tab3);
-
-        lat = lon = 0;
-        callConnection();
-
-        //cria um mapa asincrono
-        manipulaMapa.getMapAsync(this);
-
-        //qnd sair e voltar recupera a última tab
-        if (savedInstanceState != null) {
-            int indiceTab = savedInstanceState.getInt("indiceTab");
-            getActionBar().setSelectedNavigationItem(indiceTab);
-        } else
-            getActionBar().setSelectedNavigationItem(0);
-        getActionBar().setSelectedNavigationItem(0);
+        FragmentTransaction gerente = BuscarActivity.this.getSupportFragmentManager().beginTransaction();
+        gerente.replace(R.id.fragmentConteiner, new BuscarProntoSocorroFragment());
+        gerente.commit();
     }
 
-    //é chamado quando após o mapa ser criado
+    //toda vez que a aplicação é pausada quando
+    //ela volta, executa-se esse método (start)
     @Override
-    public void onMapReady(GoogleMap map) {
+    protected void onStart() {
+        super.onStart();
 
-        map.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                new LatLng(lat, lon), 16));
+        //verifica se existe alguma conexão coma  Internet
+        if(!VerificaFerramentas.isInternetHabilitada(
+                (ConnectivityManager)getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE)))
+        {
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(BuscarActivity.this);
 
-        // You can customize the marker image using images bundled with
-        // your app, or dynamically generated bitmaps.
-        map.addMarker(new MarkerOptions()
-                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.voce))
-                .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
-                .position(new LatLng(lat, lon)));
+            synchronized (alertDialogBuilder) {
+                alertDialogBuilder.setMessage("Você está sem conexão com a internet. Gostaria de habilitá-la?")
+                        .setCancelable(false)
+                        .setPositiveButton("Habilitar", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                Intent callGPSSettingIntent = new Intent(
+                                        Settings.ACTION_WIRELESS_SETTINGS);
+                                startActivity(callGPSSettingIntent);
+                            }
+                        });
 
-        map.addMarker(new MarkerOptions()
-                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.marca_clinica))
-                .anchor(0.0f, 1.0f)
-                .position(new LatLng(41.889, -87.822)));
+                alertDialogBuilder.setNegativeButton("Cancelar",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
 
+                                //finaliza a aplicação
+                                finish();
+                            }
+                        });
 
-        map.addMarker(new MarkerOptions()
-                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.marca_hospital))
-                .anchor(0.0f, 1.0f)
-                .position(new LatLng(-31.889, -87.822)));
-
-        map.addMarker(new MarkerOptions()
-                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.marca_clinica))
-                .anchor(0.0f, 1.0f)
-                .position(new LatLng(-22.889, -102)));
-
-
-        map.addMarker(new MarkerOptions()
-                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.marca_hospital))
-                .anchor(0.0f, 1.0f)
-                .position(new LatLng(-31.889, -7.822)));
+                AlertDialog alert = alertDialogBuilder.create();
+                alert.show();
+            }
+        }
     }
 
     public void onBackPressed() {
@@ -150,22 +151,41 @@ public class BuscarActivity extends FragmentActivity implements OnMapReadyCallba
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        Location localizacao = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 
-        if(localizacao != null)
+        //se o GPS estiver habilitado, busque a localização do usuário
+        if (VerificaFerramentas.isGspHabilitado((LocationManager) getSystemService(LOCATION_SERVICE))) {
+            Location localizacao = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+
+            if (localizacao != null) {  //guarada a localização atual do usuário
+                this.lat = localizacao.getLatitude();
+                this.lon = localizacao.getLongitude();
+            }
+        }
+        else //se não estiver habilitado exiba uma mensagem para o usuário habilitar o GSP
         {
-            this.lat = localizacao.getLatitude();
-            this.lon = localizacao.getLongitude();
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+            alertDialogBuilder.setMessage("GPS está desabilitado. Gostaria de habilitá-lo?")
+                    .setCancelable(false)
+                    .setPositiveButton("Habilitar", new DialogInterface.OnClickListener(){
+                        public void onClick(DialogInterface dialog, int id){
+                            Intent callGPSSettingIntent = new Intent(
+                                    android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                            startActivity(callGPSSettingIntent);
+                        }
+                    });
 
-            //guarda a última geolocalização obtida
-            SharedPreferences.Editor editor;
+            alertDialogBuilder.setNegativeButton("Cancelar",
+                    new DialogInterface.OnClickListener(){
+                        public void onClick(DialogInterface dialog, int id){
+                            dialog.cancel();
 
-            SharedPreferences geo = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
-            editor = geo.edit();
-            editor.putString("latitude", this.lat+"");
-            editor.putString("longitude", this.lon+"");
+                            //finaliza a aplicação
+                            finish();
+                        }
+                    });
 
-            editor.commit();
+            AlertDialog alert = alertDialogBuilder.create();
+            alert.show();
         }
     }
 
@@ -177,45 +197,6 @@ public class BuscarActivity extends FragmentActivity implements OnMapReadyCallba
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         Toast.makeText(this, "Falha na busca de sua geolocalização", Toast.LENGTH_SHORT).show();
-    }
-
-    //salva a última sessão antes de sair
-    @Override
-    public void onSaveInstanceState(Bundle outState){
-        super.onSaveInstanceState(outState);
-        outState.putInt("indiceTab", getActionBar().getSelectedNavigationIndex());
-    }
-
-
-    private class NavegacaoTab implements ActionBar.TabListener{
-
-        private Fragment frag;
-
-        public NavegacaoTab(Fragment frgmt)
-        {
-            this.frag = frgmt;
-        }
-
-        //troca de fragment
-        @Override
-        public void onTabSelected(ActionBar.Tab tab, android.app.FragmentTransaction ft) {
-            FragmentTransaction gerente = BuscarActivity.this.getSupportFragmentManager().beginTransaction();
-            gerente.replace(R.id.fragmentConteiner, frag);
-            gerente.commit();
-        }
-
-        //volta para o fragment inicial
-        @Override
-        public void onTabUnselected(ActionBar.Tab tab, android.app.FragmentTransaction ft) {
-            FragmentTransaction gerente = BuscarActivity.this.getSupportFragmentManager().beginTransaction();
-            gerente.remove(frag);
-            gerente.commit();
-        }
-
-        @Override
-        public void onTabReselected(ActionBar.Tab tab, android.app.FragmentTransaction ft) {
-
-        }
     }
 
 }

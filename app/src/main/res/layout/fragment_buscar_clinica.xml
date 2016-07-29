@@ -2,8 +2,23 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.medicofacil.medicofacilapp.BuscarClinicaFragment">
+    tools:context=".BuscarClinicaFragment">
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Beneficença"
+        android:id="@+id/txtConvenio"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:textSize="25dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginBottom="10dp" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/txtConvenio">
     <SearchView android:layout_width="wrap_content"
         android:layout_height="wrap_content" android:id="@+id/srcPesquisa"
         android:layout_alignParentRight="true"
@@ -27,5 +42,7 @@
         android:layout_gravity="center_horizontal"
         android:layout_below="@+id/spnOrdem"
         android:background="@color/background_color" />
+
+    </RelativeLayout>
 
 </RelativeLayout>

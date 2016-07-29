@@ -56,11 +56,11 @@ public class MedicoAdapter extends BaseAdapter {
         //(layout, parent)
         View layout = inflater.inflate(R.layout.item_marcar_medico, null);
 
-        TextView txtNome = (TextView)layout.findViewById(R.id.txtNome);
+        TextView txtNome = (TextView)layout.findViewById(R.id.txtNomeMedico);
         TextView txtEspecialidade = (TextView)layout.findViewById(R.id.txtEspecialidade);
 
         txtNome.setText(medico.getNome());
-        txtEspecialidade.setText(medico.getEspecialidade());
+//      txtEspecialidade.setText(medico.getEspecialidade());
 
 
         return layout;

@@ -13,10 +13,10 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.medicofacil.medicofacilapp.classesDBO.Clinica;
+import com.medicofacil.medicofacilapp.classesDBO.Convenio;
 import com.medicofacil.medicofacilapp.classesDBO.Medico;
+import com.medicofacil.medicofacilapp.classesDBO.ProntoSocorro;
 
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
@@ -24,13 +24,13 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 
 
-public class MarcarMedicoFragment extends Fragment {
+public class BuscarConvenioFragment extends Fragment {
 
     private static final String INDEX = "http://webservicepaciente.cfapps.io/";
-    private ArrayList<Medico> lista;
-    private ListView lstMedicos;
+    private ArrayList<Convenio> lista;
+    private ListView lstConvenios;
     private SearchView pesquisa;
-    private Clinica clinica;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -39,13 +39,7 @@ public class MarcarMedicoFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_medico, container, false);
 
-        //recupera a clínica guardada no momento em que se selecionou uma clínica no fragment MarcarClinica
-        clinica = ((ConsultarActivity)getActivity()).getClinica();
-
-        lista = new ArrayList<Medico>();
-
-        TextView txtNomeClinica = (TextView)view.findViewById(R.id.txtNome);
-        txtNomeClinica.setText(clinica.getNome());
+        lista = new ArrayList<Convenio>();
 
         pesquisa = (SearchView)view.findViewById(R.id.srcPesquisa);
 
@@ -57,7 +51,7 @@ public class MarcarMedicoFragment extends Fragment {
             public boolean onQueryTextSubmit(String s) {
                 //se foi digitado alguma coisa, pesquise
                 if(!pesquisa.getQuery().toString().isEmpty())
-                    new MedicosTask().execute(pesquisa.getQuery().toString());
+                    new ConveniosTask().execute(pesquisa.getQuery().toString());
                 return false;
             }
 
@@ -67,94 +61,84 @@ public class MarcarMedicoFragment extends Fragment {
             }
         });
 
-        lstMedicos = (ListView)view.findViewById(R.id.lstMedicos);
+        lstConvenios = (ListView)view.findViewById(R.id.lstConvenios);
 
-        lstMedicos.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        lstConvenios.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 //muda o fragment da Tab selecionada(marcação de médico) para marcação de horário
                 FragmentTransaction gerente = getActivity().getSupportFragmentManager().beginTransaction();
 
                 ConsultarActivity activity = (ConsultarActivity) getActivity();
-                //guarda o médico clicada
-                activity.setMedico(lista.get(position));
+                //guarda o convênio clicado
+                activity.setConvenio(lista.get(position));
 
-                gerente.replace(R.id.fragmentConteiner, new MarcarDataHorarioFragment());
+                gerente.replace(R.id.fragmentConteiner, new MarcarClinicaFragment());
                 gerente.commit();
             }
         });
 
 
-        new MedicosTask().execute();
+        new ConveniosTask().execute();
 
         return view;
     }
 
-    private class MedicosTask extends AsyncTask<String, Void, ArrayList<Medico>> {
+    private class ConveniosTask extends AsyncTask<String, Void, ArrayList<Convenio>> {
 
         private ProgressDialog dialog;
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            dialog = ProgressDialog.show(MarcarMedicoFragment.this.getContext(), "Aguarde",
-                    "Aguarde um momento, estamos buscando os médicos desta clínica no nosso sistema");
-
-            int tamanho = lista.size();
+            dialog = ProgressDialog.show(BuscarConvenioFragment.this.getContext(), "Aguarde",
+                    "Aguarde um momento, estamos buscando os convênios disponíveis no nosso sistema");
 
             //limpa a lista
-            for(int i=0; i<tamanho; i++)
-                lista.remove(0);
+            lista.clear();
         }
 
         //quando doInBackground termina, é chamado o onPostExecute com o retorno do doInBackground
         @Override
-        protected ArrayList<Medico> doInBackground(String... params) {
+        protected ArrayList<Convenio> doInBackground(String... params) {
             try {
-
                 String url = INDEX;
 
-                //se foi passado parte do nome do médico por parâmetro
                 if(params.length > 0)
-                  url += "getMedicosPorNomeIdClinica/"+params[0];
+                    url += "getConvenio/"+params[0];
                 else
-                    url += "getMedicosPorClinica";
-
-                url += "/"+clinica.getId();
+                  url += "getConvenios";
 
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
 
-                Medico vet[] = restTemplate.getForObject(url, Medico[].class);
+                Convenio vet[] = restTemplate.getForObject(url, Convenio[].class);
 
-                for(int i=0; i<vet.length; i++)
+                for(int i=0; i<vet.length; i++) {
                     lista.add(vet[i]);
+                }
 
                 return lista;
 
             } catch (Exception e) {
-                Log.e("Medico", e.getMessage(), e);
+                Log.e("Convenio", e.getMessage(), e);
             }
 
             return null;
         }
 
 
-        protected void onPostExecute(ArrayList<Medico> medicos) {
+        protected void onPostExecute(ArrayList<Convenio> convenios) {
             dialog.dismiss();
 
-            if(medicos.size() == 0)
+            if(convenios != null)
             {
-                Toast.makeText(getContext(), "Infelizmente a clínica "+clinica.getNome()+" não tem médicos disponíveis.", Toast.LENGTH_LONG);
-                getActivity().getActionBar().setSelectedNavigationItem(0);
-            }
-            else
-            {
-                MedicoAdapter adaptador;
-                adaptador = new MedicoAdapter(MarcarMedicoFragment.this.getActivity(), medicos);
+                ConvenioAdapter adaptador;
+                adaptador = new ConvenioAdapter(BuscarConvenioFragment.this.getActivity(), convenios);
 
-                lstMedicos.setAdapter(adaptador);
+                lstConvenios.setAdapter(adaptador);
             }
+
         }
 
     }

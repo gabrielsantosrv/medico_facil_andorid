@@ -12,51 +12,62 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Dr. Fulano"
-        android:id="@+id/txtNome"
+        android:id="@+id/txtNomeMedico"
         android:textAlignment="center"
-        android:textSize="40dp"
+        android:textSize="30dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:textColor="@color/text_color" />
+        android:textColor="@color/colorPrimaryDark"
+        android:layout_marginTop="20dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Data: 05/02/2016"
+        android:text="Endocrinologista"
         android:id="@+id/txtEspecialidade"
-        android:layout_marginTop="40dp"
-        android:layout_below="@+id/txtNome"
+        android:layout_marginTop="15dp"
+        android:layout_below="@+id/txtNomeMedico"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:textSize="25dp"
+        android:textSize="18dp"
         android:textColor="@color/text_color" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Horário: 13:50"
-        android:id="@+id/txtHorario"
+        android:text="10/02/2016 - 13:50"
+        android:id="@+id/txtDataHora"
         android:layout_below="@+id/txtEspecialidade"
         android:layout_alignLeft="@+id/txtEspecialidade"
         android:layout_alignStart="@+id/txtEspecialidade"
-        android:layout_marginTop="15dp"
-        android:textSize="25dp"
-        android:textColor="@color/text_color" />
+        android:layout_marginTop="5dp"
+        android:textSize="20dp"
+        android:textColor="@color/colorPrimary" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_below="@+id/txtDataHora"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="40dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Clínica: HC Unicamp"
-        android:id="@+id/txtHospital"
-        android:layout_below="@+id/txtHorario"
-        android:layout_alignLeft="@+id/txtHorario"
-        android:layout_alignStart="@+id/txtHorario"
-        android:layout_marginTop="15dp"
-        android:textSize="25dp"
-        android:textColor="@color/text_color" />
+        android:text="HC Unicamp"
+        android:id="@+id/txtNome"
+        android:layout_below="@+id/txtDataHora"
+        android:layout_alignLeft="@+id/txtDataHora"
+        android:layout_alignStart="@+id/txtDataHora"
+        android:textSize="30dp"
+        android:textColor="@color/colorPrimaryDark"
+        android:layout_gravity="center_horizontal" />
+
 
     <TextView
         android:layout_width="wrap_content"
@@ -64,11 +75,11 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Endereço: Rua Olavo Bilac, 125"
         android:id="@+id/txtEndereco"
-        android:layout_below="@+id/txtHospital"
-        android:layout_alignLeft="@+id/txtHospital"
-        android:layout_alignStart="@+id/txtHospital"
+        android:layout_below="@+id/txtNome"
+        android:layout_alignLeft="@+id/txtNome"
+        android:layout_alignStart="@+id/txtNome"
         android:layout_marginTop="15dp"
-        android:textSize="25dp"
+        android:textSize="18dp"
         android:textColor="@color/text_color" />
 
     <TextView
@@ -78,9 +89,9 @@
         android:text="Bairro: Cidade Universitária"
         android:id="@+id/txtBairro"
         android:layout_below="@+id/txtEndereco"
-        android:layout_alignLeft="@+id/txtHospital"
-        android:layout_marginTop="15dp"
-        android:textSize="25dp"
+        android:layout_alignLeft="@+id/txtNome"
+        android:layout_marginTop="10dp"
+        android:textSize="18dp"
         android:textColor="@color/text_color" />
 
     <TextView
@@ -90,9 +101,22 @@
         android:text="Cidade: Campinas - SP"
         android:id="@+id/txtCidade"
         android:layout_below="@+id/txtBairro"
-        android:layout_alignLeft="@+id/txtHospital"
-        android:layout_marginTop="15dp"
-        android:textSize="25dp"
+        android:layout_alignLeft="@+id/txtNome"
+        android:layout_marginTop="10dp"
+        android:textSize="18dp"
         android:textColor="@color/text_color" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="(19) 3333-3333"
+            android:id="@+id/txtTelefone"
+            android:layout_below="@+id/txtBairro"
+            android:layout_alignLeft="@+id/txtTelefone"
+            android:layout_marginTop="10dp"
+            android:textSize="18dp"
+            android:textColor="@color/text_color" />
+   </LinearLayout>
 
 </RelativeLayout>

@@ -8,33 +8,34 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.medicofacil.medicofacilapp.classesDBO.Clinica;
+import com.medicofacil.medicofacilapp.classesDBO.Convenio;
 
 import java.util.ArrayList;
 
 /**
  * Created by Gabriel Oliveira on 02/07/2016.
  */
-public class MarcarClinicaAdapter extends BaseAdapter{
+public class ConvenioAdapter extends BaseAdapter{
 
     private Context contexto;
-    private ArrayList<Clinica> clinicas;
+    private ArrayList<Convenio> convenios;
 
-    public MarcarClinicaAdapter(Context contexto, ArrayList<Clinica> prontosSocorros)
+    public ConvenioAdapter(Context contexto, ArrayList<Convenio> convenios)
     {
         this.contexto = contexto;
-        this.clinicas = (ArrayList<Clinica>) prontosSocorros.clone();
+        this.convenios = (ArrayList<Convenio>) convenios.clone();
     }
 
     //qtos itens tem na lista
     @Override
     public int getCount() {
-        return this.clinicas.size();
+        return this.convenios.size();
     }
 
     //o item da posicao passada como parâmetro
     @Override
     public Object getItem(int position) {
-        return this.clinicas.get(position);
+        return this.convenios.get(position);
     }
 
     //o id do item da posicao passada como parâmetro
@@ -47,22 +48,18 @@ public class MarcarClinicaAdapter extends BaseAdapter{
     //da sua lista
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        Clinica clinica = this.clinicas.get(position);
+        Convenio convenio = this.convenios.get(position);
 
         //prepara o inflater para inflar um layout
         LayoutInflater inflater = (LayoutInflater)contexto.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         //infla o layout
         //(layout, parent)
-        View layout = inflater.inflate(R.layout.item_buscar_ps_clinica, null);
+        View layout = inflater.inflate(R.layout.item_consulta, null);
 
         TextView txtNome = (TextView)layout.findViewById(R.id.txtNome);
-        TextView txtEndereco = (TextView)layout.findViewById(R.id.txtEndereco);
 
-        txtNome.setText(clinica.getNome());
-        txtEndereco.setText(clinica.getEndereco()+"\n"+clinica.getBairro()+"\n"+
-                            clinica.getCidade()+" - "+clinica.getUf()+"\n"+
-                            "Tel: "+clinica.getTelefone());
+        txtNome.setText(convenio.getNome());
 
         return layout;
     }

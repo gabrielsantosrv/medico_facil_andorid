@@ -1,11 +1,13 @@
 package com.medicofacil.medicofacilapp;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.Context;
-import android.content.SharedPreferences;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,14 +17,9 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.Spinner;
-import android.widget.Toast;
-
-import com.medicofacil.medicofacilapp.classesDBO.Clinica;
 import com.medicofacil.medicofacilapp.classesDBO.ProntoSocorro;
-
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
-
 import java.util.ArrayList;
 
 
@@ -35,6 +32,8 @@ public class BuscarProntoSocorroFragment extends Fragment {
     private ListView lstProntosSocorros;
     private ArrayList<ProntoSocorro> lista;
     private String lat, lon;
+    private AlertDialog msg;
+    private int posicao;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -45,6 +44,7 @@ public class BuscarProntoSocorroFragment extends Fragment {
         lstProntosSocorros = (ListView) view.findViewById(R.id.lstProntosSocorros);
         lista = new ArrayList<ProntoSocorro>();
 
+        posicao = -1;
         spinner = (Spinner) view.findViewById(R.id.spnOrdem);
         String [] itens = new String[]{"Mais próximo", "Ordem alfabética"};
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this.getActivity(), android.R.layout.simple_spinner_item, itens);
@@ -90,9 +90,10 @@ public class BuscarProntoSocorroFragment extends Fragment {
             }
         });
 
-        SharedPreferences geo = this.getContext().getSharedPreferences("geolocalização", Context.MODE_PRIVATE);
-        lat = geo.getString("latitude", "0");
-        lon = geo.getString("longitude", "0");
+        BuscarActivity activity = (BuscarActivity)getActivity();
+        Localizacao localizacao = activity.getLocalizacao();
+        lat = localizacao.getLatitude()+"";
+        lon = localizacao.getLongitude()+"";
 
         //quando se desejar pesquisar algo
         pesquisa.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -111,6 +112,59 @@ public class BuscarProntoSocorroFragment extends Fragment {
                 return false;
             }
         });
+
+        lstProntosSocorros.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int pos, long id) {
+
+                posicao =  pos;
+                ArrayList<String> itens = new ArrayList<String>();
+                itens.add("Visualizar no mapa");
+                itens.add("Pesquisar médicos em plantão");
+
+                //adapter utilizando um layout customizado (TextView)
+                ArrayAdapter adapter = new ArrayAdapter(BuscarProntoSocorroFragment.this.getActivity(),
+                        R.layout.item_dialog, itens);
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(BuscarProntoSocorroFragment.this.getActivity());
+                builder.setTitle("O que deseja?");
+
+                //define o diálogo como uma lista, passa o adapter.
+                builder.setSingleChoiceItems(adapter, 0, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog , int position) {
+
+                        ProntoSocorro ps  = lista.get(BuscarProntoSocorroFragment.this.posicao);
+
+                        //visualizar no mapa
+                        if(position == 0)
+                        {
+                            Intent intent = new Intent(getActivity(), MapaActivity.class);
+
+                            //passa a geolocalização para o mapa
+                            Bundle bundle = new Bundle();
+                            bundle.putString("ps", ps.getLatitude()+"/"+ps.getLongitude());
+                            intent.putExtras(bundle);
+
+                            getActivity().startActivity(intent);
+                        }
+                        else//visualizar médicos de plantão
+                        {
+                            FragmentTransaction gerente = getActivity().getSupportFragmentManager().beginTransaction();
+                            BuscarActivity activity = (BuscarActivity)getActivity();
+                            //guarda o pronto socorro clicado
+                            activity.setProntoSocorro(ps);
+                            gerente.replace(R.id.fragmentConteiner, new BuscarMedicoPlantaoFragment());
+                            gerente.commit();
+                        }
+
+                        msg.dismiss();
+                    }
+                });
+
+                msg = builder.create();
+                msg.show();
+            }
+});
 
         new ProntoSocorrosTask().execute(lat, lon);
 
@@ -166,65 +220,46 @@ public class BuscarProntoSocorroFragment extends Fragment {
             dialog = ProgressDialog.show(BuscarProntoSocorroFragment.this.getContext(), "Aguarde",
                     "Aguarde um momento, estamos buscando os Prontos Socorros no nosso sistema");
 
-            int tamanho = lista.size();
-
             //limpa a lista
-            for(int i=0; i<tamanho; i++)
-              lista.remove(0);
+            lista.clear();
         }
 
         //quando doInBackground termina, é chamado o onPostExecute com o retorno do doInBackground
         @Override
         protected ArrayList<ProntoSocorro> doInBackground(String... params) {
             try {
-                double lat =0, lon=0;
+                float lat =0, lon=0;
                 String nome = "";
 
                 if(params.length > 0)
                 {
-                    lat = Double.parseDouble(params[0]);
-                    lon = Double.parseDouble(params[1]);
+                    lat = Float.parseFloat(params[0]);
+                    lon = Float.parseFloat(params[1]);
 
                     if(params.length == 3)
                         nome = params[2];
                 }
 
-                String url = INDEX+"getProntoSocorros";
+                String url = INDEX;
 
                 //foi digitado alguma coisa em pesquisa
                 //pesquise por convênio
-                if(nome == null || !nome.isEmpty())
-                    url += "PorConvenio/"+nome;
-
-                url += "/"+lat+"/"+lon;
-
+                if(!nome.isEmpty())
+                    url += "getProntoSocorrosPorNome/" + nome + "/" + lat + "/" + lon; //"getProntoSocorrosPorNomeConvenio/"+convenio.getId()+"/"+lat+"/"+lon;
+                else
+                  url += "getProntoSocorros/"+lat+"/"+lon;  //"getProntoSocorrosPorConvenio/"+convenio.getId()+"/"+lat+"/"+lon;
 
                 RestTemplate restTemplate = new RestTemplate();
                 restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
 
                 //o web service retorna uma lista de prontos socorros ordenada
-                //da menor para a maior distância entre o usuário e o PS
-                ProntoSocorro vet1[] = restTemplate.getForObject(url, ProntoSocorro[].class);
-                ArrayList<ProntoSocorro> listaPs = new ArrayList<ProntoSocorro>();
+                //da menor para a maior distância entre o usuário e o Pronto Socorro
+                ProntoSocorro vet[] = restTemplate.getForObject(url, ProntoSocorro[].class);
 
-                for(int i=0; i<vet1.length; i++) {
-                    lista.add(vet1[i]);
-                    listaPs.add(vet1[i]);
-                }
+                for(int i=0; i<vet.length; i++)
+                    lista.add(vet[i]);
 
-                //e pesquise por parte do nome
-                if(!nome.isEmpty()) {
-                    url = INDEX+"getProntoSocorrosPorNome/" + nome + "/" + lat + "/" + lon;
-
-                    ProntoSocorro vet2[] = restTemplate.getForObject(url, ProntoSocorro[].class);
-
-                    for(int i=0; i<vet2.length; i++) {
-                        lista.add(vet2[i]);
-                        listaPs.add(vet2[i]);
-                    }
-                }
-
-                return listaPs;
+                return lista;
 
             } catch (Exception e) {
                 Log.e("BuscarProntoSocorro", e.getMessage(), e);
@@ -232,7 +267,6 @@ public class BuscarProntoSocorroFragment extends Fragment {
 
             return null;
         }
-
 
         protected void onPostExecute(ArrayList<ProntoSocorro> prontoSocorros) {
             dialog.dismiss();
@@ -249,15 +283,6 @@ public class BuscarProntoSocorroFragment extends Fragment {
                 lstProntosSocorros.setAdapter(adaptador);
             }
 
-         /*   lstProntosSocorros.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-               @Override
-                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                    //muda o fragment da Tab selecionada(marcação de médico) para marcação de horário
-                    FragmentTransaction gerente = getActivity().getSupportFragmentManager().beginTransaction();
-                    gerente.replace(R.id.fragmentConteiner, new MarcarHorarioFragment());
-                    gerente.commit();
-                }
-            });*/
         }
 
     }
